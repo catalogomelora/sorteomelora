@@ -47,11 +47,6 @@ input{width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--line);
 #adminbar button{padding:8px 12px;border-radius:10px;border:0;background:var(--pink);color:#fff;font-weight:bold;margin-top:6px;cursor:pointer}
 </style></head>
 <body><main>
-<div id="adminbar" hidden>
-  <b>Modo administradora</b> · toca un número para cambiarlo: libre → apartado → vendido → libre.<br>
-  <button id="save">Guardar y publicar cambios</button> <span id="amsg"></span>
-</div>
-
 <div class="hero">
   <div class="brand">MELORA · BELLEZA · ESTILO · TU ESENCIA</div>
   <h1>Dulce Suerte 🎀</h1>
@@ -135,24 +130,6 @@ $("send").onclick=function(){
   $("modal").hidden=true;
 };
 render();
-(async function(){
-  try{
-    if(typeof claude==="undefined")return;
-    var u=await claude.use("user"),a=await claude.use("artifact");
-    if(u&&a&&(await u.canEdit())){ART=a;admin=true;$("adminbar").hidden=false}
-  }catch(e){}
-})();
-$("save").onclick=async function(){
-  if(!ART)return;
-  try{
-    var c=document.documentElement.cloneNode(true);
-    c.querySelector("#state").textContent=JSON.stringify(S);
-    c.querySelector("#grid").innerHTML="";c.querySelector("#stats").textContent="";
-    c.querySelector("#fill").removeAttribute("style");
-    c.querySelector("#adminbar").setAttribute("hidden","");
-    c.querySelector("#amsg").textContent="";
-    c.querySelector("#modal").setAttribute("hidden","");
-    await ART.publish("<!doctype html>\n"+c.outerHTML);
-  }catch(e){$("amsg").textContent="No se pudo guardar, intenta de nuevo."}
-};
+function sync(){fetch("estado.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){S={r:j.r||[],s:j.s||[]};render()}).catch(function(){})}
+sync();setInterval(sync,60000);
 </script></main></body></html>
