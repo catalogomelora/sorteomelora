@@ -98,13 +98,13 @@ function render(){
 }
 function list(){
   var q=$("q").value.toLowerCase(),L=$("list");L.innerHTML="";
-  var ks=Object.keys(REG).filter(function(n){return st(n)!=="a"}).sort();
-  var shown=ks.filter(function(n){var x=REG[n];return !q||(n+" "+x.n+" "+x.t).toLowerCase().indexOf(q)>-1});
+  var ks=S.r.concat(S.s).sort();
+  var shown=ks.filter(function(n){var x=REG[n]||{n:"",t:""};return !q||(n+" "+x.n+" "+x.t).toLowerCase().indexOf(q)>-1});
   if(!shown.length){L.innerHTML='<div class="small">Aún no hay participantes registrados.</div>';return}
-  shown.forEach(function(n){var x=REG[n],k=st(n),d=document.createElement("div");d.className="row";
+  shown.forEach(function(n){var x=REG[n]||{n:"",t:"",f:""},k=st(n),d=document.createElement("div");d.className="row";
     d.innerHTML='<div class="num">'+n+'</div><div class="who"><b></b><small></small></div><span class="chip '+k+'">'+(k==="s"?"Vendido":"Apartado")+'</span><a target="_blank" rel="noopener" title="Abrir WhatsApp">💬</a>';
-    d.querySelector("b").textContent=x.n;d.querySelector("small").textContent=(x.t||"sin teléfono")+(x.f?" · "+x.f:"");
-    d.querySelector("a").href="https://wa.me/"+digits(x.t);d.querySelector(".who").onclick=function(){openM(n)};L.appendChild(d)})
+    d.querySelector("b").textContent=x.n||"⚠ Sin nombre";d.querySelector("small").textContent=x.n?((x.t||"sin teléfono")+(x.f?" · "+x.f:"")):"Toca aquí para completar sus datos";
+    if(x.t)d.querySelector("a").href="https://wa.me/"+digits(x.t);else d.querySelector("a").style.display="none";d.querySelector(".who").onclick=function(){openM(n)};L.appendChild(d)})
 }
 function openM(n){cur=n;var x=REG[n]||{};$("mn").textContent=n;$("mname").value=x.n||"";$("mtel").value=x.t||"";$("modal").hidden=false}
 function setS(k){
@@ -118,7 +118,7 @@ function setS(k){
 }
 $("bl").onclick=function(){setS("a")};$("br").onclick=function(){setS("r")};$("bs").onclick=function(){setS("s")};$("mx").onclick=function(){$("modal").hidden=true};
 $("q").oninput=list;
-function rows(){return Object.keys(REG).filter(function(n){return st(n)!=="a"}).sort().map(function(n){var x=REG[n];return[n,st(n)==="s"?"Vendido":"Apartado",x.n,x.t,x.f||""]})}
+function rows(){return S.r.concat(S.s).sort().map(function(n){var x=REG[n]||{n:"",t:"",f:""};return[n,st(n)==="s"?"Vendido":"Apartado",x.n,x.t,x.f||""]})}
 $("copy").onclick=function(){var t=rows().map(function(r){return r[0]+" - "+r[2]+" - "+r[3]+" - "+r[1]}).join("\n");(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){say("Lista copiada ✔")},function(){prompt("Copia la lista:",t)})};
 $("csv").onclick=function(){var t="Número,Estado,Nombre,WhatsApp,Fecha\n"+rows().map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
   var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+t],{type:"text/csv"}));a.download="dulce-suerte-registro.csv";a.click()};
