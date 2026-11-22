@@ -68,6 +68,19 @@ h2{font:400 28px Pacifico,cursive;color:var(--pink);text-align:center;margin:30p
 .n.s{background:#ece4e8;color:#b5a6ae;text-decoration:line-through;cursor:not-allowed}
 .n.hl{animation:pop .4s forwards,glow .5s 3;background:var(--hot);color:#fff}
 @keyframes glow{50%{box-shadow:0 0 0 8px rgba(255,46,126,.3)}}
+.n.sel{background:var(--hot);color:#fff;transform:scale(1.06);box-shadow:0 6px 14px rgba(255,46,126,.4)}
+.n.sel:after{content:" ♥";font-size:9px}
+.dr{display:flex;gap:8px;margin-bottom:8px}.dr .dice{margin:0;flex:1}
+.stp{display:flex;align-items:center;background:#fff;border:2px dashed var(--pink);border-radius:16px;padding:0 2px}
+.stp button{width:36px;height:100%;border:0;background:none;color:var(--pink);font:700 22px Poppins,sans-serif;cursor:pointer}
+.stp b{min-width:22px;text-align:center;color:var(--ink);font-size:16px}
+#mine{background:var(--soft);border:2px solid var(--pink);border-radius:18px;padding:12px;margin-bottom:12px}
+#mine[hidden]{display:none}#mine>b{font-size:14px;color:var(--ink)}
+.chips2{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.chips2 span{background:#fff;color:var(--hot);font-weight:700;border-radius:99px;padding:4px 4px 4px 12px;font-size:15px}
+.chips2 span i{font-style:normal;margin-left:2px;cursor:pointer;color:var(--mute);padding:0 8px}
+.go{width:100%;border:0;border-radius:99px;padding:13px;font:700 15px Poppins,sans-serif;color:#fff;background:linear-gradient(135deg,#ff5fa2,#ff2e7e);cursor:pointer;box-shadow:0 6px 14px rgba(255,46,126,.35)}
+.tk .big{line-height:1.1;word-break:break-word}
 .leg{display:flex;gap:12px;justify-content:center;font-size:11px;color:var(--mute);margin-top:12px;flex-wrap:wrap}
 .leg span:before{content:"";display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:5px;vertical-align:-1px;background:var(--soft)}
 .leg .r:before{background:#fff1c7}.leg .s:before{background:#ece4e8}
@@ -127,7 +140,7 @@ input:focus{outline:0;border-color:var(--pink)}
     <div><b>100</b>números</div><div><b>1</b>ganadora</div><div><b>$5.000</b>cada uno</div>
   </div>
   <div class="steps">
-    <div><b>1</b><span>Toca tu número favorito</span></div>
+    <div><b>1</b><span>Toca los números que quieras: ¡puedes elegir varios!</span></div>
     <div><b>2</b><span>Llena tus datos y se abre WhatsApp</span></div>
     <div><b>3</b><span>Pagas y te apartamos tu número 💖</span></div>
     <div><b>4</b><span>El 18 de diciembre miramos si tu número es el ganador 🎉</span></div>
@@ -136,7 +149,9 @@ input:focus{outline:0;border-color:var(--pink)}
 
   <h2 id="elige">Escoge tu número</h2>
   <div class="board">
-    <button class="dice" id="dice">🎲 ¡Sorpréndeme con un número!</button>
+    <div class="dr"><button class="dice" id="dice">🎲 ¡Sorpréndeme!</button><div class="stp"><button id="qm" aria-label="menos">−</button><b id="qn">1</b><button id="qp" aria-label="más">+</button></div></div>
+    <div class="small" style="margin:0 0 10px;color:var(--mute)">¿Quieres varios? Toca todos los números que quieras, o sube la cantidad y pulsa 🎲. Cada uno cuesta $5.000.</div>
+    <div id="mine" hidden><b id="minet"></b><div class="chips2" id="chips2"></div><button class="go" id="go">Apartar 💖</button></div>
     <div class="prog"><i id="fill"></i></div>
     <div class="stat"><span id="stats"></span><span class="hot" id="hot" hidden>🔥 ¡Últimos números!</span></div>
     <div id="grid"></div>
@@ -150,7 +165,7 @@ input:focus{outline:0;border-color:var(--pink)}
 <div id="sticky" class="off"><button id="cta2">🍭 Elegir mi número · quedan <span id="left">100</span></button></div>
 
 <div id="modal" hidden><div class="sheet">
-  <div class="tk"><div class="big" id="num">00</div><div><small>¡Excelente elección!</small><b>Tu número de la suerte</b><small>$5.000 · Sorteo 18 de dic.</small></div></div>
+  <div class="tk"><div class="big" id="num">00</div><div><small>¡Excelente elección!</small><b id="tkt">Tu número de la suerte</b><small id="tot">$5.000 · Sorteo 18 de dic.</small></div></div>
   <label for="nm">Tu nombre</label><input id="nm" autocomplete="name" placeholder="Ej: Laura Gómez">
   <label for="ph">Tu WhatsApp</label><input id="ph" type="tel" autocomplete="tel" placeholder="Ej: 300 123 4567">
   <div id="err"></div>
@@ -160,38 +175,66 @@ input:focus{outline:0;border-color:var(--pink)}
 
 <script type="application/json" id="state">{"r":[],"s":[]}</script>
 <script>
-var S={r:[],s:[]},WA="573000070102",VALOR="",sel=null,$=function(i){return document.getElementById(i)};
+var S={r:[],s:[]},WA="573000070102",VALOR="",sel=[],q=1,FREE=100,$=function(i){return document.getElementById(i)};
 try{S=JSON.parse($("state").textContent)}catch(e){}
 if(VALOR){$("val").textContent="Kit valorado en "+VALOR;$("val").hidden=false}
 function pad(i){return(i<10?"0":"")+i}
 function st(n){return S.s.indexOf(n)>-1?"s":S.r.indexOf(n)>-1?"r":"a"}
 function boom(){var e=["🎀","💖","✨","🍭","🍬"];for(var i=0;i<26;i++){var c=document.createElement("span");c.className="cf";c.textContent=e[i%5];c.style.left=Math.random()*100+"vw";c.style.animationDelay=Math.random()*.6+"s";c.style.fontSize=16+Math.random()*16+"px";document.body.appendChild(c);setTimeout(function(x){x.remove()},3200,c)}}
 function render(){
+  var bf=sel.length;sel=sel.filter(function(n){return st(n)==="a"});if(sel.length<bf)alert("Uno de tus números ya fue tomado por otra persona 💔 Revisa tu selección.");
   var g=$("grid");g.innerHTML="";var free=0;
   for(var i=0;i<100;i++){var n=pad(i),k=st(n);if(k==="a")free++;
-    var b=document.createElement("button");b.className="n "+k;b.id="n"+n;b.textContent=n;b.style.animationDelay=i*7+"ms";
+    var b=document.createElement("button");b.className="n "+k+(sel.indexOf(n)>-1?" sel":"");b.id="n"+n;b.textContent=n;b.style.animationDelay=i*7+"ms";
     b.setAttribute("aria-label","Número "+n);b.onclick=(function(n){return function(){pick(n)}})(n);g.appendChild(b)}
   $("stats").innerHTML="Quedan <b>"+free+"</b> de 100";
-  $("fill").style.width=(100-free)+"%";$("left").textContent=free;
+  $("fill").style.width=(100-free)+"%";FREE=free;
   $("hot").hidden=!(free<=25&&free>0);
   if(free===0)$("stats").innerHTML="<b>¡Todos los números vendidos!</b>";
+  upd();
 }
-function pick(n){if(st(n)!=="a")return;sel=n;$("num").textContent=n;$("err").textContent="";$("modal").hidden=false;boom();setTimeout(function(){$("nm").focus()},300)}
+function money(c){return "$"+(c*5000).toLocaleString("es-CO")}
+function pick(n){if(st(n)!=="a")return;var i=sel.indexOf(n);if(i>-1)sel.splice(i,1);else sel.push(n);upd()}
+function upd(){
+  sel.sort();var c=sel.length;
+  for(var i=0;i<100;i++){var e=$("n"+pad(i));if(e)e.classList.toggle("sel",sel.indexOf(pad(i))>-1)}
+  $("mine").hidden=!c;
+  if(c){$("minet").textContent=c+(c>1?" números elegidos":" número elegido")+" · "+money(c);
+    var h="";sel.forEach(function(n){h+='<span>'+n+'<i data-n="'+n+'">✕</i></span>'});$("chips2").innerHTML=h;
+    $("go").textContent="Apartar "+(c>1?"mis "+c+" números":"mi número")+" · "+money(c)+" 💖";
+    $("cta2").textContent="🎀 Apartar "+c+(c>1?" números":" número")+" · "+money(c)+" →"}
+  else $("cta2").textContent="🍭 Elegir mi número · quedan "+FREE;
+  bar()
+}
+function openM(){
+  var c=sel.length;if(!c)return;
+  $("num").textContent=sel.join(" · ");$("num").style.fontSize=(c===1?54:c<=3?34:26)+"px";
+  $("tkt").textContent=c>1?"Tus números de la suerte":"Tu número de la suerte";
+  $("tot").textContent=c+(c>1?" números":" número")+" · Total "+money(c);
+  $("err").textContent="";$("modal").hidden=false;boom();setTimeout(function(){$("nm").focus()},300)
+}
+$("chips2").onclick=function(e){var n=e.target.getAttribute&&e.target.getAttribute("data-n");if(n){sel.splice(sel.indexOf(n),1);upd()}};
+$("go").onclick=openM;
 $("close").onclick=function(){$("modal").hidden=true};
 $("modal").onclick=function(e){if(e.target===$("modal"))$("modal").hidden=true};
 $("send").onclick=function(){
   var nm=$("nm").value.trim(),ph=$("ph").value.trim();
   if(nm.length<2){$("err").textContent="Escribe tu nombre.";return}
   if(ph.replace(/\D/g,"").length<7){$("err").textContent="Escribe un WhatsApp válido.";return}
-  var t="¡Hola, MELORA! 💖 Quiero participar en *Dulce Suerte*.\n\n🎀 Mi número: *"+sel+"*\n👤 Nombre: "+nm+"\n📱 WhatsApp: "+ph+"\n💰 Valor: $5.000\n\nQuedo atenta a los datos de pago para apartar mi número. ¡Gracias!";
+  var c=sel.length;if(!c){$("modal").hidden=true;return}
+  var t="¡Hola, MELORA! 💖 Quiero participar en *Dulce Suerte*.\n\n🎀 "+(c>1?"Mis números":"Mi número")+": *"+sel.join(", ")+"*\n👤 Nombre: "+nm+"\n📱 WhatsApp: "+ph+"\n💰 Valor: "+money(c)+(c>1?" ("+c+" × $5.000)":"")+"\n\nQuedo atenta a los datos de pago para apartar "+(c>1?"mis números":"mi número")+". ¡Gracias!";
   boom();window.open("https://wa.me/"+WA+"?text="+encodeURIComponent(t),"_blank");$("modal").hidden=true;
 };
 function go(){$("elige").scrollIntoView({behavior:"smooth"})}
-$("cta").onclick=go;$("cta2").onclick=go;
+$("cta").onclick=go;$("cta2").onclick=function(){if(sel.length)openM();else go()};
+$("qm").onclick=function(){if(q>1){q--;$("qn").textContent=q}};$("qp").onclick=function(){if(q<10){q++;$("qn").textContent=q}};
 $("dice").onclick=function(){
-  var f=[];for(var i=0;i<100;i++)if(st(pad(i))==="a")f.push(pad(i));if(!f.length)return;
-  var n=f[Math.floor(Math.random()*f.length)],el=$("n"+n);el.classList.add("hl");
-  el.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(function(){pick(n);el.classList.remove("hl")},900);
+  var f=[];for(var i=0;i<100;i++){var n=pad(i);if(st(n)==="a"&&sel.indexOf(n)<0)f.push(n)}
+  if(!f.length)return;var got=[];
+  for(var k=0;k<q&&f.length;k++){var j=Math.floor(Math.random()*f.length);got.push(f.splice(j,1)[0])}
+  got.forEach(function(n){sel.push(n)});upd();boom();
+  got.forEach(function(n){var e=$("n"+n);e.classList.add("hl");setTimeout(function(){e.classList.remove("hl")},1600)});
+  $("mine").scrollIntoView({behavior:"smooth",block:"center"})
 };
 /* cuenta regresiva: 18 dic 2026, 10 pm hora Colombia */
 var T=Date.UTC(2026,11,19,3,0,0);
@@ -203,7 +246,7 @@ var car=$("car"),paused=false,pt;
 setInterval(function(){if(paused)return;var w=car.firstElementChild.offsetWidth+12;
   if(car.scrollLeft+car.clientWidth>=car.scrollWidth-6)car.scrollTo({left:0,behavior:"smooth"});else car.scrollBy({left:w,behavior:"smooth"})},2800);
 /* barra fija: visible mientras el tablero no esté en pantalla */
-function bar(){var r=$("grid").getBoundingClientRect(),v=r.top<innerHeight*.9&&r.bottom>80;$("sticky").classList.toggle("off",v||scrollY<250)}
+function bar(){var r=$("grid").getBoundingClientRect(),v=r.top<innerHeight*.9&&r.bottom>80;$("sticky").classList.toggle("off",sel.length?false:(v||scrollY<250))}
 addEventListener("scroll",bar,{passive:true});bar();
 render();
 function sync(){fetch("estado.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var a=JSON.stringify(S);S={r:j.r||[],s:j.s||[]};if(JSON.stringify(S)!==a&&$("modal").hidden)render()}).catch(function(){})}
