@@ -5,30 +5,41 @@
 <title>Admin · Dulce Suerte MELORA</title>
 <style>
 :root{--bg:#fff5f8;--card:#fff;--ink:#4a2a3a;--mute:#8a6677;--pink:#e84a8a;--gold:#b98a2c;--free:#ffe3ee;--line:#f3c9d8;--sold:#cfc4ca;--res:#ffe28a;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#1d1217;--card:#2a1a22;--ink:#fbe9f0;--mute:#c9a6b6;--pink:#ff6fa6;--gold:#e0b85a;--free:#43212f;--line:#5a2f42;--sold:#4a3d44;--res:#6b5718;color-scheme:dark}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,sans-serif}
-main{max-width:560px;margin:0 auto;padding:16px 14px 90px}
-h1{font:bold 24px Georgia,serif;color:var(--pink);margin:6px 0}
+main{max-width:560px;margin:0 auto;padding:16px 14px 100px}
+h1{font:bold 24px Georgia,serif;color:var(--pink);margin:6px 0}h2{font:bold 17px Georgia,serif;margin:18px 0 6px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
 label{display:block;font-size:12px;color:var(--mute);margin:8px 0 3px}
 input{width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-size:15px}
 button{cursor:pointer;font:bold 15px system-ui,sans-serif}
 .b{width:100%;margin-top:10px;padding:13px;border:0;border-radius:12px;background:var(--pink);color:#fff}
+.b2{padding:9px 12px;border:1.5px solid var(--pink);border-radius:10px;background:#fff;color:var(--pink);font-size:13px}
 #grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:10px 0}
 .n{padding:12px 0;border-radius:11px;border:1.5px solid var(--line);background:var(--free);color:var(--ink)}
-.n.r{background:var(--res);border-color:var(--gold)}.n.s{background:var(--sold);text-decoration:line-through;border-color:transparent}
+.n.r{background:var(--res);border-color:var(--gold)}.n.s{background:var(--sold);border-color:transparent}
 .sum{display:flex;gap:8px;text-align:center}.sum div{flex:1;background:var(--free);border-radius:12px;padding:8px 4px;font-size:12px;color:var(--mute)}.sum b{display:block;font-size:20px;color:var(--ink)}
+.row{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 10px;margin:6px 0}
+.row .num{font:bold 18px Georgia,serif;color:var(--pink);min-width:34px}
+.row .who{flex:1;min-width:0;line-height:1.25}.row .who small{display:block;color:var(--mute)}
+.chip{font-size:11px;font-weight:bold;border-radius:99px;padding:3px 9px}.chip.r{background:var(--res)}.chip.s{background:var(--sold)}
+.row a{color:#25a85a;font-size:20px;text-decoration:none}
 #bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center}
 #bar .b{margin:0;flex:1}#msg{font-size:13px;flex:1.2;color:var(--mute)}
-.small{font-size:12px;color:var(--mute)}a{color:var(--pink)}
+#modal{position:fixed;inset:0;background:rgba(60,10,35,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+#modal[hidden],#bar[hidden],#panel[hidden],#cfg[hidden]{display:none}
+.sheet{background:#fff;width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.big{font:bold 38px Georgia,serif;color:var(--pink)}
+.st{display:flex;gap:8px;margin-top:14px}.st button{flex:1;padding:12px 4px;border-radius:12px;border:0;font-size:14px}
+.small{font-size:12px;color:var(--mute)}
 </style></head><body><main>
 <h1>Panel Dulce Suerte 🎀</h1>
-<div class="small">Toca un número para cambiarlo: <b>libre → apartado → vendido → libre</b>. Luego pulsa Guardar.</div>
+<div class="small">Toca un número para ver o cambiar su dueña. Al final pulsa <b>Guardar</b>.</div>
 
 <div class="card" id="cfg">
   <b>Conexión con GitHub</b> <span class="small">(se guarda solo en este dispositivo)</span>
   <label>Usuario de GitHub</label><input id="o" value="catalogomelora" autocapitalize="off">
-  <label>Repositorio</label><input id="r" value="sorteomelora" autocapitalize="off">
+  <label>Repositorio público (la página)</label><input id="r" value="sorteomelora" autocapitalize="off">
+  <label>Repositorio PRIVADO (nombres y teléfonos)</label><input id="g" value="sorteomelora-registro" autocapitalize="off">
   <label>Token de acceso</label><input id="t" type="password" placeholder="github_pat_..." autocapitalize="off">
   <button class="b" id="conn">Conectar</button>
 </div>
@@ -36,56 +47,103 @@ button{cursor:pointer;font:bold 15px system-ui,sans-serif}
 <div id="panel" hidden>
   <div class="sum"><div><b id="cl">0</b>Libres</div><div><b id="cr">0</b>Apartados</div><div><b id="cs">0</b>Vendidos</div><div><b id="cm">$0</b>Recaudado</div></div>
   <div id="grid"></div>
+  <h2>Registro de participantes</h2>
+  <input id="q" placeholder="Buscar por nombre, teléfono o número">
+  <div style="display:flex;gap:8px;margin:8px 0"><button class="b2" id="copy">Copiar lista</button><button class="b2" id="csv">Descargar CSV</button></div>
+  <div id="list"></div>
   <button class="b" id="out" style="background:transparent;color:var(--mute);font-weight:normal">Desconectar este dispositivo</button>
 </div>
 
 <div id="bar" hidden><div id="msg"></div><button class="b" id="save">Guardar cambios</button></div>
 
+<div id="modal" hidden><div class="sheet">
+  <div class="small">Número</div><div class="big" id="mn">00</div>
+  <label>Nombre de la persona</label><input id="mname" autocomplete="off" placeholder="Ej: Laura Gómez">
+  <label>WhatsApp</label><input id="mtel" type="tel" placeholder="Ej: 300 123 4567">
+  <div class="st">
+    <button id="bl" style="background:var(--free);color:var(--ink)">Libre</button>
+    <button id="br" style="background:var(--res);color:var(--ink)">Apartado</button>
+    <button id="bs" style="background:var(--pink);color:#fff">Vendido</button>
+  </div>
+  <button class="b" id="mx" style="background:transparent;color:var(--mute);font-weight:normal;margin-top:4px">Cancelar</button>
+</div></div>
+
 <script>
-var S={r:[],s:[]},SHA=null,dirty=false,$=function(i){return document.getElementById(i)};
-var P="estado.json";
-function cfg(){return{o:$("o").value.trim(),r:$("r").value.trim(),t:$("t").value.trim()}}
-function api(){var c=cfg();return "https://api.github.com/repos/"+c.o+"/"+c.r+"/contents/"+P}
-function hd(){return{Authorization:"Bearer "+cfg().t,Accept:"application/vnd.github+json"}}
+var S={r:[],s:[]},REG={},SHA={e:null,g:null},dirty=false,cur=null,$=function(i){return document.getElementById(i)};
+function C(){return{o:$("o").value.trim(),r:$("r").value.trim(),g:$("g").value.trim(),t:$("t").value.trim()}}
+function hd(){return{Authorization:"Bearer "+C().t,Accept:"application/vnd.github+json"}}
 function say(t){$("msg").textContent=t}
 function pad(i){return(i<10?"0":"")+i}
 function st(n){return S.s.indexOf(n)>-1?"s":S.r.indexOf(n)>-1?"r":"a"}
+function dec(b){return new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\n/g,"")),function(c){return c.charCodeAt(0)}))}
+function enc(o){var u=new TextEncoder().encode(JSON.stringify(o,null,1)),s="";for(var i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s)}
+async function get(repo,path){
+  var c=C(),res=await fetch("https://api.github.com/repos/"+c.o+"/"+repo+"/contents/"+path+"?t="+Date.now(),{headers:hd(),cache:"no-store"});
+  if(res.status===404)return{sha:null,data:null};
+  if(!res.ok)throw new Error(res.status===401?"Token inválido o vencido":"No se pudo leer "+repo+" ("+res.status+")");
+  var j=await res.json();return{sha:j.sha,data:JSON.parse(dec(j.content))}
+}
+async function put(repo,path,obj,sha,msg){
+  var c=C(),b={message:msg,content:enc(obj)};if(sha)b.sha=sha;
+  var res=await fetch("https://api.github.com/repos/"+c.o+"/"+repo+"/contents/"+path,{method:"PUT",headers:hd(),body:JSON.stringify(b)});
+  if(!res.ok)throw new Error(res.status+"|"+repo);return (await res.json()).content.sha
+}
+function digits(t){var d=(t||"").replace(/\D/g,"");return d.length===10?"57"+d:d}
 function render(){
   var g=$("grid");g.innerHTML="";
   for(var i=0;i<100;i++){var n=pad(i),b=document.createElement("button");b.className="n "+st(n);b.textContent=n;
-    b.onclick=(function(n){return function(){
-      var k=st(n);S.r=S.r.filter(function(x){return x!==n});S.s=S.s.filter(function(x){return x!==n});
-      if(k==="a")S.r.push(n);else if(k==="r")S.s.push(n);
-      dirty=true;say("Cambios sin guardar");render()}})(n);g.appendChild(b)}
+    b.onclick=(function(n){return function(){openM(n)}})(n);g.appendChild(b)}
   $("cr").textContent=S.r.length;$("cs").textContent=S.s.length;$("cl").textContent=100-S.r.length-S.s.length;
-  $("cm").textContent="$"+(S.s.length*5000).toLocaleString("es-CO");
+  $("cm").textContent="$"+(S.s.length*5000).toLocaleString("es-CO");list()
 }
+function list(){
+  var q=$("q").value.toLowerCase(),L=$("list");L.innerHTML="";
+  var ks=Object.keys(REG).filter(function(n){return st(n)!=="a"}).sort();
+  var shown=ks.filter(function(n){var x=REG[n];return !q||(n+" "+x.n+" "+x.t).toLowerCase().indexOf(q)>-1});
+  if(!shown.length){L.innerHTML='<div class="small">Aún no hay participantes registrados.</div>';return}
+  shown.forEach(function(n){var x=REG[n],k=st(n),d=document.createElement("div");d.className="row";
+    d.innerHTML='<div class="num">'+n+'</div><div class="who"><b></b><small></small></div><span class="chip '+k+'">'+(k==="s"?"Vendido":"Apartado")+'</span><a target="_blank" rel="noopener" title="Abrir WhatsApp">💬</a>';
+    d.querySelector("b").textContent=x.n;d.querySelector("small").textContent=(x.t||"sin teléfono")+(x.f?" · "+x.f:"");
+    d.querySelector("a").href="https://wa.me/"+digits(x.t);d.querySelector(".who").onclick=function(){openM(n)};L.appendChild(d)})
+}
+function openM(n){cur=n;var x=REG[n]||{};$("mn").textContent=n;$("mname").value=x.n||"";$("mtel").value=x.t||"";$("modal").hidden=false}
+function setS(k){
+  var n=cur,name=$("mname").value.trim(),tel=$("mtel").value.trim();
+  if(k!=="a"&&name.length<2){alert("Escribe el nombre de la persona.");return}
+  if(k==="a"&&REG[n]&&REG[n].n&&st(n)!=="a"&&!confirm("¿Liberar el "+n+" y borrar los datos de "+REG[n].n+"?"))return;
+  S.r=S.r.filter(function(x){return x!==n});S.s=S.s.filter(function(x){return x!==n});
+  if(k==="a")delete REG[n];
+  else{(k==="r"?S.r:S.s).push(n);REG[n]={n:name,t:tel,f:(REG[n]&&REG[n].f)||new Date().toISOString().slice(0,10)}}
+  dirty=true;say("Cambios sin guardar");$("modal").hidden=true;render()
+}
+$("bl").onclick=function(){setS("a")};$("br").onclick=function(){setS("r")};$("bs").onclick=function(){setS("s")};$("mx").onclick=function(){$("modal").hidden=true};
+$("q").oninput=list;
+function rows(){return Object.keys(REG).filter(function(n){return st(n)!=="a"}).sort().map(function(n){var x=REG[n];return[n,st(n)==="s"?"Vendido":"Apartado",x.n,x.t,x.f||""]})}
+$("copy").onclick=function(){var t=rows().map(function(r){return r[0]+" - "+r[2]+" - "+r[3]+" - "+r[1]}).join("\n");(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){say("Lista copiada ✔")},function(){prompt("Copia la lista:",t)})};
+$("csv").onclick=function(){var t="Número,Estado,Nombre,WhatsApp,Fecha\n"+rows().map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+t],{type:"text/csv"}));a.download="dulce-suerte-registro.csv";a.click()};
 async function load(){
-  say("Cargando...");
-  var res=await fetch(api()+"?t="+Date.now(),{headers:hd(),cache:"no-store"});
-  if(res.status===404){S={r:[],s:[]};SHA=null}
-  else if(!res.ok){throw new Error(res.status===401?"Token inválido o vencido":"No se pudo conectar ("+res.status+")")}
-  else{var j=await res.json();SHA=j.sha;var d=JSON.parse(atob(j.content.replace(/\n/g,"")));S={r:d.r||[],s:d.s||[]}}
-  dirty=false;render();say("Conectado ✔");
+  say("Cargando...");var c=C(),e=await get(c.r,"estado.json"),g=await get(c.g,"registro.json");
+  S=e.data?{r:e.data.r||[],s:e.data.s||[]}:{r:[],s:[]};SHA.e=e.sha;REG=g.data||{};SHA.g=g.sha;dirty=false;render();say("Conectado ✔")
 }
 async function connect(){
-  var c=cfg();if(!c.o||!c.r||!c.t){alert("Completa los tres campos.");return}
-  try{await load();
-    try{localStorage.setItem("melora_cfg",JSON.stringify(c))}catch(e){}
-    $("cfg").hidden=true;$("panel").hidden=false;$("bar").hidden=false;
-  }catch(e){alert(e.message)}
+  var c=C();if(!c.o||!c.r||!c.g||!c.t){alert("Completa los cuatro campos.");return}
+  try{await load();try{localStorage.setItem("melora_cfg2",JSON.stringify(c))}catch(e){}
+    $("cfg").hidden=true;$("panel").hidden=false;$("bar").hidden=false}catch(e){alert(e.message)}
 }
-async function save(){
-  say("Guardando...");
-  var body={message:"Actualizar números",content:btoa(JSON.stringify({r:S.r.sort(),s:S.s.sort()})),branch:"main"};
-  if(SHA)body.sha=SHA;
-  var res=await fetch(api(),{method:"PUT",headers:hd(),body:JSON.stringify(body)});
-  if(res.ok){var j=await res.json();SHA=j.content.sha;dirty=false;say("Guardado ✔ Se verá en la página en ~1 minuto")}
-  else if(res.status===409||res.status===422){say("Alguien más guardó antes. Recargando...");await load()}
-  else say("Error al guardar ("+res.status+"). Revisa el token.");
-}
-$("conn").onclick=connect;$("save").onclick=function(){save().catch(function(){say("Sin conexión, intenta de nuevo")})};
-$("out").onclick=function(){try{localStorage.removeItem("melora_cfg")}catch(e){}location.reload()};
-window.addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue=""}});
-try{var s=JSON.parse(localStorage.getItem("melora_cfg")||"null");if(s){$("o").value=s.o;$("r").value=s.r;$("t").value=s.t;connect()}}catch(e){}
+$("save").onclick=async function(){
+  say("Guardando...");var c=C();
+  try{
+    var reg={};Object.keys(REG).forEach(function(n){if(st(n)!=="a")reg[n]=REG[n]});REG=reg;
+    SHA.g=await put(c.g,"registro.json",REG,SHA.g,"Actualizar registro");
+    SHA.e=await put(c.r,"estado.json",{r:S.r.slice().sort(),s:S.s.slice().sort()},SHA.e,"Actualizar números");
+    dirty=false;say("Guardado ✔ La página se actualiza en ~1 minuto")
+  }catch(e){
+    if(/^(409|422)/.test(e.message)){say("Alguien más guardó antes. Recargando...");await load();alert("Se recargaron los datos más recientes. Repite tu último cambio.")}
+    else say("Error al guardar ("+e.message+"). Revisa el token y los repositorios.")}
+};
+$("conn").onclick=connect;
+$("out").onclick=function(){try{localStorage.removeItem("melora_cfg2")}catch(e){}location.reload()};
+addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue=""}});
+try{var s=JSON.parse(localStorage.getItem("melora_cfg2")||"null");if(s){$("o").value=s.o;$("r").value=s.r;$("g").value=s.g;$("t").value=s.t;connect()}}catch(e){}
 </script></main></body></html>
